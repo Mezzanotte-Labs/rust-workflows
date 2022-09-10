@@ -1,0 +1,55 @@
+name: Rust Syntax Check
+
+
+on: 
+  workflow_call:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - stable
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+
+
+  pass_label:
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: ${{ success() }}
+    steps:
+    - name: Label as build_passed
+      uses: crazymanish/pullrequest-attention-label-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ADD_LABEL: "build_passed"
+        AFTER_DAYS: 0
+        SKIP_LABELS: ""
+  fail_label:
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: ${{ failure() }}
+    steps:
+    - name: Label as build_failed
+      uses: crazymanish/pullrequest-attention-label-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ADD_LABEL: "build_failed"
+        AFTER_DAYS: 0
+        SKIP_LABELS: ""
