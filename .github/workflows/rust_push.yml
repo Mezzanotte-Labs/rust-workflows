@@ -44,7 +44,7 @@ jobs:
           RUSTFLAGS: '-C target-feature=+crt-static -C link-self-contained=yes'
         with:
           command: build
-          args: --release --target x86_64-unknown-linux-musl --target-dir target
+          args: --release --target x86_64-unknown-linux-musl
 
       - name: Generate release tag
         id: tag
@@ -55,5 +55,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
-          files: target/${{ github.event.repository.name }}
+          files: /home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}
+
           generate_release_notes: true
