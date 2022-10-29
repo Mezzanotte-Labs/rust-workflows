@@ -14,6 +14,7 @@ jobs:
       - name: Edit Cargo.toml
         run: |
           sed -i 's/^openssl.*/openssl = {version = "0.10", features = ["vendored"]}/g' Cargo.toml
+          echo '[profile.release]' >> Cargo.toml
           echo 'opt-level = 3' >> Cargo.toml
           echo 'debug = false' >> Cargo.toml
           echo 'debug-assertions = false' >> Cargo.toml
