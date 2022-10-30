@@ -50,11 +50,15 @@ jobs:
         id: tag
         run: |
           echo '::set-output name=release_tag::Main_Release_$(date -u +"%Y-%m-%dT%H:%M:%SZ")'
+          pwd
+          ls target
+          ls target/release
+          ls /home/runner/work/antares-http/antares-http/
+
 
       - name: Upload to Releases
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
-          files: /home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}
-
+          files: target/release/${{ github.event.repository.name }}
           generate_release_notes: true
