@@ -47,7 +47,7 @@ jobs:
           args: --release --target x86_64-unknown-linux-musl
 
       - name: Generate release tag
-        run: echo "DATE=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
+        run: echo "DATE=$(date +'%Y-%m-%dT%H.%M.%S')" >> $GITHUB_ENV
 
       - name: Upload to Releases
         uses: softprops/action-gh-release@v1
