@@ -49,11 +49,11 @@ jobs:
       - name: Generate release tag
         id: tag
         run: |
-          echo '::set-output name=release_tag::Main_Release_$(date -u +"%Y-%m-%dT%H.%M.%SZ")'
+          echo '::set-output name=release_tag::$(date -u +"%Y-%m-%dT%H.%M.%SZ")'
 
       - name: Upload to Releases
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.tag.outputs.release_tag }}
+          tag_name: Main_Release_${{ steps.tag.outputs.release_tag }}
           files: target/x86_64-unknown-linux-musl/release/${{ github.event.repository.name }}
           generate_release_notes: true
