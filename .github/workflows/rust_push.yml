@@ -49,12 +49,7 @@ jobs:
       - name: Generate release tag
         id: tag
         run: |
-          echo '::set-output name=release_tag::Main_Release_$(date -u +"%Y-%m-%dT%H:%M:%SZ")'
-          ls target
-          ls target/x86_64-unknown-linux-musl
-          ls target/x86_64-unknown-linux-musl/release
-
-
+          echo '::set-output name=release_tag::Main_Release_$(date -u +"%Y-%m-%dT%H.%M.%SZ")'
 
       - name: Upload to Releases
         uses: softprops/action-gh-release@v1
