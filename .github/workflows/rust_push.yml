@@ -34,6 +34,9 @@ jobs:
           sudo apt-get install -y libxss-dev
           sudo apt-get install -y libssl-dev
 
+      - name: Setup pkgconfig
+        run: echo "PKG_CONFIG_SYSROOT_DIR=/" >> $GITHUB_ENV
+
       - name: Setup Toolchain
         uses: actions-rs/toolchain@v1
         with:
