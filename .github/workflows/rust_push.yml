@@ -34,6 +34,7 @@ jobs:
           sudo apt-get install -y libxss-dev
           sudo apt-get install -y libssl-dev
 
+      - name: Setup openssl
         run: echo "OPENSSL_DIR=/usr/lib/x86_64-linux-gnu" >> $GITHUB_ENV
 
       - name: Setup Toolchain
