@@ -34,10 +34,11 @@ jobs:
           sudo apt-get install -y libxss-dev
           sudo apt-get install -y libssl-dev
 
-      - name: Setup openssl
+      - name: Setup openssl and pkg-config
         run: |
           echo "OPENSSL_DIR=/usr/lib/x86_64-linux-gnu" >> $GITHUB_ENV
           echo "OPENSSL_INCLUDE_DIR=/usr/include/openssl" >> $GITHUB_ENV
+          echo "PKG_CONFIG_ALLOW_CROSS=1" >> $GITHUB_ENV
 
       - name: Setup Toolchain
         uses: actions-rs/toolchain@v1
