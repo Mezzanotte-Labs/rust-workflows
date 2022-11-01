@@ -35,7 +35,9 @@ jobs:
           sudo apt-get install -y libssl-dev
 
       - name: Setup openssl
-        run: echo "OPENSSL_DIR=/usr/lib/x86_64-linux-gnu" >> $GITHUB_ENV
+        run: |
+          echo "OPENSSL_DIR=/usr/lib/x86_64-linux-gnu" >> $GITHUB_ENV
+          echo "OPENSSL_INCLUDE_DIR=/usr/include/openssl" >> $GITHUB_ENV
 
       - name: Setup Toolchain
         uses: actions-rs/toolchain@v1
