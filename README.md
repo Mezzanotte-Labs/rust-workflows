@@ -2,7 +2,8 @@
 
 This repository is used to run our Rust workflow for all Rust projects
 
-WARNING: Any edits to this repository will affect ALL Rust projects
+> **Warning**
+> Any edits to this repository will affect ALL Rust projects
 
 # Example
 
