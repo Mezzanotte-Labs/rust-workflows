@@ -59,9 +59,16 @@ jobs:
       - name: Generate release tag
         run: echo "DATE=$(date +'%Y-%m-%dT%H.%M.%S')" >> $GITHUB_ENV
 
+      - name: Get Package Name
+        uses: SebRollen/toml-action@v1.0.1
+        id: package_name
+        with:
+          file: 'Cargo.toml'
+          field: 'package.name'
+
       - name: Upload to Releases
         uses: softprops/action-gh-release@v1
         with:
           tag_name: Main_Release_${{ env.DATE }}
-          files: target/x86_64-unknown-linux-musl/release/${{ github.event.repository.name }}
+          files: target/x86_64-unknown-linux-musl/release/${{ steps.package_name.outputs.value }}
           generate_release_notes: true
