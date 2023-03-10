@@ -18,12 +18,12 @@ jobs:
           echo 'opt-level = 3' >> Cargo.toml
           echo 'debug = false' >> Cargo.toml
           echo 'debug-assertions = false' >> Cargo.toml
-          echo 'overflow-checks = false' >> Cargo.toml
+          echo 'overflow-checks = true' >> Cargo.toml
           echo 'lto = "fat"' >> Cargo.toml
-          echo 'strip = "debuginfo"' >> Cargo.toml
-          echo 'panic = "unwind"' >> Cargo.toml
+          echo 'strip = true' >> Cargo.toml
+          echo 'panic = "about"' >> Cargo.toml
           echo 'incremental = false' >> Cargo.toml
-          echo 'codegen-units = 2' >> Cargo.toml
+          echo 'codegen-units = 1' >> Cargo.toml
           echo 'rpath = false' >> Cargo.toml
 
       - name: Install packages
@@ -43,6 +43,7 @@ jobs:
       - name: Setup Toolchain
         uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: stable
           target: x86_64-unknown-linux-musl
           override: true
