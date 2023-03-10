@@ -21,7 +21,7 @@ jobs:
           echo 'overflow-checks = true' >> Cargo.toml
           echo 'lto = "fat"' >> Cargo.toml
           echo 'strip = true' >> Cargo.toml
-          echo 'panic = "about"' >> Cargo.toml
+          echo 'panic = "abort"' >> Cargo.toml
           echo 'incremental = false' >> Cargo.toml
           echo 'codegen-units = 1' >> Cargo.toml
           echo 'rpath = false' >> Cargo.toml
