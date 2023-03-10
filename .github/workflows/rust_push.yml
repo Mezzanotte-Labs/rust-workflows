@@ -56,12 +56,6 @@ jobs:
           command: build
           args: --release --target x86_64-unknown-linux-musl
 
-      - name: Debug
-        run: |
-          ls
-          pwd
-          find /home/runner/ -type f -name rust-binary-upload-testing
-
       - name: Generate release tag
         run: echo "DATE=$(date +'%Y-%m-%dT%H.%M.%S')" >> $GITHUB_ENV
 
