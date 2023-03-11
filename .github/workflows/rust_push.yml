@@ -1,6 +1,5 @@
 name: Rust Compile and Release
 
-
 on: 
   workflow_call:
 
@@ -45,9 +44,6 @@ jobs:
       - name: Install dependencies
         run: ${{ matrix.dependencies }}
 
-      - name: Generate release tag
-        run: echo "DATE=$(date +'%Y-%m-%dT%H.%M.%S')" >> $GITHUB_ENV
-
       - name: Get Package Name
         uses: SebRollen/toml-action@v1.0.1
         id: package_name
@@ -69,9 +65,34 @@ jobs:
           command: build
           args: --release --target=${{ matrix.target }}
 
+      - name: Upload Binary
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: ${{ steps.package_name.outputs.value }}-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}
+          if-no-files-found: error
+          retention-days: 7
+
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: bins/
+
+      - name: Debug
+        run: ls -R
+
+      - name: Generate release tag
+        run: echo "DATE=$(date +'%Y-%m-%dT%H.%M.%S')" >> $GITHUB_ENV
+
       - name: Upload to Releases
         uses: softprops/action-gh-release@v1
         with:
           tag_name: Main_Release_${{ env.DATE }}
-          files: target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}
+          files: bins/*
           generate_release_notes: true
