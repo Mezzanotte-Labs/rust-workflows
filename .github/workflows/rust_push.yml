@@ -68,7 +68,6 @@ jobs:
       - name: Build
         uses: actions-rs/cargo@v1
         with:
-          use-cross: true
           command: build
           args: --release --target=${{ matrix.target }}
 
@@ -76,5 +75,5 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: Main_Release_${{ env.DATE }}
-          files: target/x86_64-unknown-linux-musl/release/${{ steps.package_name.outputs.value }}
+          files: target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}
           generate_release_notes: true
