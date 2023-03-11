@@ -7,6 +7,12 @@ on:
 jobs:
   compile:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
 
     steps:
       - uses: actions/checkout@v2
@@ -40,22 +46,6 @@ jobs:
           echo "OPENSSL_INCLUDE_DIR=/usr/include/openssl" >> $GITHUB_ENV
           echo "PKG_CONFIG_ALLOW_CROSS=1" >> $GITHUB_ENV
 
-      - name: Setup Toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          target: x86_64-unknown-linux-musl
-          override: true
-
-      - name: Compile Binary
-        uses: actions-rs/cargo@v1
-        env:
-          RUSTFLAGS: '-C target-feature=+crt-static -C link-self-contained=yes'
-        with:
-          command: build
-          args: --release --target x86_64-unknown-linux-musl
-
       - name: Generate release tag
         run: echo "DATE=$(date +'%Y-%m-%dT%H.%M.%S')" >> $GITHUB_ENV
 
@@ -65,6 +55,21 @@ jobs:
         with:
           file: 'Cargo.toml'
           field: 'package.name'
+
+      - name: Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          target: ${{ matrix.target }}
+          override: true
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --release --target=${{ matrix.target }}
 
       - name: Upload to Releases
         uses: softprops/action-gh-release@v1
