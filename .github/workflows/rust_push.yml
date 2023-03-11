@@ -95,5 +95,5 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: Main_Release_${{ env.DATE }}
-          files: bins/*
+          files: bins/**
           generate_release_notes: true
