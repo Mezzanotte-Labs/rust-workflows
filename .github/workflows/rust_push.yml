@@ -75,6 +75,7 @@ jobs:
           retention-days: 7
 
   upload:
+    needs: compile
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
