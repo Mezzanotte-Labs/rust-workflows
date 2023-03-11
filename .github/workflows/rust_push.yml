@@ -43,7 +43,7 @@ jobs:
           echo 'rpath = false' >> Cargo.toml
 
       - name: Install dependencies
-        run: ${{ matrix.include.dependencies }}
+        run: ${{ matrix.dependencies }}
 
       - name: Generate release tag
         run: echo "DATE=$(date +'%Y-%m-%dT%H.%M.%S')" >> $GITHUB_ENV
@@ -67,11 +67,11 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release --target=${{ matrix.include.target }}
+          args: --release --target=${{ matrix.target }}
 
       - name: Upload to Releases
         uses: softprops/action-gh-release@v1
         with:
           tag_name: Main_Release_${{ env.DATE }}
-          files: target/${{ matrix.include.target }}/release/${{ steps.package_name.outputs.value }}
+          files: target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}
           generate_release_notes: true
