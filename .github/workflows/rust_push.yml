@@ -89,9 +89,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Setup perl
+        if: ${{ matrix.target }} == "x86_64-pc-windows-gnu"
         uses: shogo82148/actions-setup-perl@v1
         with:
-          perl-version: "5.34"
+          perl-version: latest
           distribution: strawberry
           install-modules-with: cpanm
             #- uses: ilammy/setup-nasm@v1
