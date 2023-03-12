@@ -140,11 +140,9 @@ jobs:
           - target: "aarch64-apple-darwin"
             dependencies: |
               brew install gnu-sed 
-              softwareupdate --install -a
           - target: "x86_64-apple-darwin"
             dependencies: |
               brew install gnu-sed
-              softwareupdate --install -a
     steps:
       - uses: actions/checkout@v2
       - name: Install Dependencies
