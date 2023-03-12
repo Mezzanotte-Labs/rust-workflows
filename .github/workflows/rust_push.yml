@@ -44,8 +44,6 @@ jobs:
           echo 'incremental = false' >> Cargo.toml
           echo 'codegen-units = 1' >> Cargo.toml
           echo 'rpath = false' >> Cargo.toml
-      - name: Debug
-        run: cat Cargo.toml
       - name: Get Package Name
         uses: SebRollen/toml-action@v1.0.1
         id: package_name
@@ -85,9 +83,15 @@ jobs:
       matrix:
         include:
           - target: "x86_64-pc-windows-msvc"
+            dependencies: |
+              choco install openssl
           - target: "x86_64-pc-windows-gnu"
+            dependencies: |
+              choco install openssl
     steps:
       - uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: ${{ matrix.dependencies }}
       - name: Edit Cargo.toml
         run: |
           sed -i 's/^openssl.*/openssl = {version = \"0.10\", features = [\"vendored\"]}/g' Cargo.toml
@@ -102,8 +106,6 @@ jobs:
           echo 'incremental = false' >> Cargo.toml
           echo 'codegen-units = 1' >> Cargo.toml
           echo 'rpath = false' >> Cargo.toml
-      - name: Debug
-        run: cat Cargo.toml
       - name: Get Package Name
         uses: SebRollen/toml-action@v1.0.1
         id: package_name
@@ -165,8 +167,6 @@ jobs:
           echo 'incremental = false' >> Cargo.toml
           echo 'codegen-units = 1' >> Cargo.toml
           echo 'rpath = false' >> Cargo.toml
-      - name: Debug
-        run: cat Cargo.toml
       - name: Get Package Name
         uses: SebRollen/toml-action@v1.0.1
         id: package_name
