@@ -79,7 +79,7 @@ jobs:
       matrix:
         include:
           - target: "x86_64-pc-windows-msvc"
-            dependencies:
+          - target: "x86_64-pc-windows-gnu"
     steps:
       - uses: actions/checkout@v2
       - name: Edit Cargo.toml
@@ -96,8 +96,8 @@ jobs:
           echo 'incremental = false' >> Cargo.toml
           echo 'codegen-units = 1' >> Cargo.toml
           echo 'rpath = false' >> Cargo.toml
-      - name: Install dependencies
-        run: ${{ matrix.dependencies }}
+          #- name: Install dependencies
+          #run: ${{ matrix.dependencies }}
         shell: pwsh
       - name: Get Package Name
         uses: SebRollen/toml-action@v1.0.1
