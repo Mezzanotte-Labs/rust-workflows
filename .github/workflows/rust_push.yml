@@ -25,6 +25,8 @@ jobs:
               sudo apt-get install -y pkg-config libssl-dev musl-tools
     steps:
       - uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: ${{ matrix.dependencies }}
       - name: Edit Cargo.toml
         run: |
           sed -i 's/^openssl.*/openssl = {version = "0.10", features = ["vendored"]}/g' Cargo.toml
@@ -39,8 +41,6 @@ jobs:
           echo 'incremental = false' >> Cargo.toml
           echo 'codegen-units = 1' >> Cargo.toml
           echo 'rpath = false' >> Cargo.toml
-      - name: Install dependencies
-        run: ${{ matrix.dependencies }}
       - name: Get Package Name
         uses: SebRollen/toml-action@v1.0.1
         id: package_name
@@ -134,9 +134,15 @@ jobs:
       matrix:
         include:
           - target: "aarch64-apple-darwin"
+            dependencies: |
+              brew install --default-names gnu-sed 
           - target: "x86_64-apple-darwin"
+            dependencies: |
+              brew install --default-names gnu-sed
     steps:
       - uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: ${{ matrix.dependencies }}
       - name: Edit Cargo.toml
         run: |
           sed -i 's/^openssl.*/openssl = {version = "0.10", features = ["vendored"]}/g' Cargo.toml
