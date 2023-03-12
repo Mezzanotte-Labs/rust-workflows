@@ -30,7 +30,7 @@ jobs:
             cross: false
             dependencies: |
               sudo apt-get update
-              sudo apt-get install -y pkg-config libssl-dev musl-tools build-essential autoconf automake gdb git libffi-dev zlib1g-dev libssl-dev libc-devtools mingw-w64
+              sudo apt-get install -y pkg-config libssl-dev build-essential autoconf automake gdb git libffi-dev zlib1g-dev libssl-dev libc-devtools mingw-w64
 
     steps:
       - uses: actions/checkout@v2
@@ -90,18 +90,8 @@ jobs:
         include:
           - target: "x86_64-pc-windows-msvc"
             dependencies:
-          - target: "x86_64-pc-windows-gnu"
-            dependencies:
     steps:
       - uses: actions/checkout@v2
-      - name: Setup perl
-        if: ${{ matrix.target }} == "x86_64-pc-windows-gnu"
-        uses: shogo82148/actions-setup-perl@v1
-        with:
-          perl-version: latest
-          distribution: strawberry
-          install-modules-with: cpanm
-            #- uses: ilammy/setup-nasm@v1
       - name: Install Dependencies
         run: ${{ matrix.dependencies }}
       - name: Edit Cargo.toml
