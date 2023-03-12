@@ -65,12 +65,15 @@ jobs:
           command: build
           args: --release --target=${{ matrix.target }}
 
+      - name: Rename Binary
+        run: mv target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }} target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}
+
       - name: Upload Binary
         uses: actions/upload-artifact@v3
         if: success()
         with:
           name: ${{ steps.package_name.outputs.value }}-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}
+          path: target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}
           if-no-files-found: error
           retention-days: 7
 
@@ -86,7 +89,7 @@ jobs:
           path: bins/
 
       - name: Debug
-        run: ls -R
+        run: ls -lR
 
       - name: Generate release tag
         run: echo "DATE=$(date +'%Y-%m-%dT%H.%M.%S')" >> $GITHUB_ENV
