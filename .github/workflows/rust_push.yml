@@ -14,15 +14,15 @@ jobs:
           - target: "x86_64-unknown-linux-gnu"
             dependencies: |
               sudo apt-get update
-              sudo apt-get install -y pkg-config libssl-dev build-essential
+              sudo apt-get install -y pkg-config libssl-dev build-essential autoconf automake gdb git libffi-dev zlib1g-dev libssl-dev
           - target: "aarch64-unknown-linux-gnu"
             dependencies: |
               sudo apt-get update
-              sudo apt-get install -y pkg-config libssl-dev gcc-aarch64-linux-gnu build-essential
+              sudo apt-get install -y pkg-config libssl-dev gcc-aarch64-linux-gnu build-essential autoconf automake gdb git libffi-dev zlib1g-dev libssl-dev
           - target: "x86_64-unknown-linux-musl"
             dependencies: |
               sudo apt-get update
-              sudo apt-get install -y pkg-config libssl-dev musl-tools build-essential
+              sudo apt-get install -y pkg-config libssl-dev musl-tools build-essential autoconf automake gdb git libffi-dev zlib1g-dev libssl-dev
     steps:
       - uses: actions/checkout@v2
       - name: Install Dependencies
@@ -136,9 +136,11 @@ jobs:
           - target: "aarch64-apple-darwin"
             dependencies: |
               brew install gnu-sed 
+              xcode-select --install
           - target: "x86_64-apple-darwin"
             dependencies: |
               brew install gnu-sed
+              xcode-select --install
     steps:
       - uses: actions/checkout@v2
       - name: Install Dependencies
@@ -186,8 +188,6 @@ jobs:
           path: target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}
           if-no-files-found: error
           retention-days: 7
-
-
 
   # Upload to GitHub Releases
   upload:
