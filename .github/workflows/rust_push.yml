@@ -96,9 +96,6 @@ jobs:
           echo 'incremental = false' >> Cargo.toml
           echo 'codegen-units = 1' >> Cargo.toml
           echo 'rpath = false' >> Cargo.toml
-          #- name: Install dependencies
-          #run: ${{ matrix.dependencies }}
-        shell: pwsh
       - name: Get Package Name
         uses: SebRollen/toml-action@v1.0.1
         id: package_name
@@ -117,8 +114,6 @@ jobs:
         with:
           command: build
           args: --release --target=${{ matrix.target }}
-      - name: Debug
-        run: ls -R
       - name: Rename Binary
         if: success()
         run: mv target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}.exe target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}.exe
@@ -131,9 +126,66 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  # Compiling on macOS
+  compile-macos:
+    runs-on: macos-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        include:
+          - target: "aarch64-apple-darwin"
+          - target: "x86_64-apple-darwin"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Edit Cargo.toml
+        run: |
+          sed -i 's/^openssl.*/openssl = {version = "0.10", features = ["vendored"]}/g' Cargo.toml
+          echo '[profile.release]' >> Cargo.toml
+          echo 'opt-level = 3' >> Cargo.toml
+          echo 'debug = false' >> Cargo.toml
+          echo 'debug-assertions = false' >> Cargo.toml
+          echo 'overflow-checks = true' >> Cargo.toml
+          echo 'lto = "fat"' >> Cargo.toml
+          echo 'strip = true' >> Cargo.toml
+          echo 'panic = "abort"' >> Cargo.toml
+          echo 'incremental = false' >> Cargo.toml
+          echo 'codegen-units = 1' >> Cargo.toml
+          echo 'rpath = false' >> Cargo.toml
+      - name: Get Package Name
+        uses: SebRollen/toml-action@v1.0.1
+        id: package_name
+        with:
+          file: 'Cargo.toml'
+          field: 'package.name'
+      - name: Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          target: ${{ matrix.target }}
+          override: true
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target=${{ matrix.target }}
+      - name: Rename Binary
+        if: success()
+        run: mv target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }} target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}
+      - name: Upload Binary
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: ${{ steps.package_name.outputs.value }}-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}
+          if-no-files-found: error
+          retention-days: 7
+
+
+
   # Upload to GitHub Releases
   upload:
-    needs: [compile-ubuntu, compile-windows]
+    needs: [compile-ubuntu, compile-windows, compile-macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
