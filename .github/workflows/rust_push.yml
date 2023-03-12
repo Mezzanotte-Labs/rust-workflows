@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 jobs:
-  compile:
+  compile-ubuntu:
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
@@ -22,10 +22,10 @@ jobs:
             dependencies: |
               sudo apt-get update
               sudo apt-get install -y pkg-config libssl-dev musl-tools
+          - target: "x86_64-pc-windows-msvc"
 
     steps:
       - uses: actions/checkout@v2
-
       - name: Edit Cargo.toml
         run: |
           sed -i 's/^openssl.*/openssl = {version = "0.10", features = ["vendored"]}/g' Cargo.toml
@@ -40,17 +40,14 @@ jobs:
           echo 'incremental = false' >> Cargo.toml
           echo 'codegen-units = 1' >> Cargo.toml
           echo 'rpath = false' >> Cargo.toml
-
       - name: Install dependencies
         run: ${{ matrix.dependencies }}
-
       - name: Get Package Name
         uses: SebRollen/toml-action@v1.0.1
         id: package_name
         with:
           file: 'Cargo.toml'
           field: 'package.name'
-
       - name: Rust Toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -58,16 +55,13 @@ jobs:
           profile: minimal
           target: ${{ matrix.target }}
           override: true
-
       - name: Build
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release --target=${{ matrix.target }}
-
       - name: Rename Binary
         run: mv target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }} target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}
-
       - name: Upload Binary
         uses: actions/upload-artifact@v3
         if: success()
@@ -77,23 +71,75 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  compile-windows:
+    runs-on: windows-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        include:
+          - target: "x86_64-pc-windows-msvc"
+            dependencies: |
+              $ProgressPreference = "SilentlyContinue"
+              Invoke-WebRequest https://win.rustup.rs/ -OutFile rustup-init.exe
+              .\rustup-init.exe -y --default-host=x86_64-pc-windows-msvc --profile=minimal
+              del rustup-init.exe
+    steps:
+      - uses: actions/checkout@v2
+      - name: Edit Cargo.toml
+        run: |
+          sed -i 's/^openssl.*/openssl = {version = "0.10", features = ["vendored"]}/g' Cargo.toml
+          echo '[profile.release]' >> Cargo.toml
+          echo 'opt-level = 3' >> Cargo.toml
+          echo 'debug = false' >> Cargo.toml
+          echo 'debug-assertions = false' >> Cargo.toml
+          echo 'overflow-checks = true' >> Cargo.toml
+          echo 'lto = "fat"' >> Cargo.toml
+          echo 'strip = true' >> Cargo.toml
+          echo 'panic = "abort"' >> Cargo.toml
+          echo 'incremental = false' >> Cargo.toml
+          echo 'codegen-units = 1' >> Cargo.toml
+          echo 'rpath = false' >> Cargo.toml
+      - name: Install dependencies
+        run: ${{ matrix.dependencies }}
+        shell: pwsh
+      - name: Get Package Name
+        uses: SebRollen/toml-action@v1.0.1
+        id: package_name
+        with:
+          file: 'Cargo.toml'
+          field: 'package.name'
+      - name: Install Target
+        run: |
+          rustup update stable
+          rustup target install ${{ matrix.target }}
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target=${{ matrix.target }}
+      - name: Rename Binary
+        run: mv target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }} target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}
+      - name: Upload Binary
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: ${{ steps.package_name.outputs.value }}-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}
+          if-no-files-found: error
+          retention-days: 7
+
+
   upload:
-    needs: compile
+    needs: compile-ubuntu
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
       - name: Download Artifacts
         uses: actions/download-artifact@v3
         with:
           path: bins/
-
-      - name: Debug
-        run: ls -lR
-
       - name: Generate release tag
         run: echo "DATE=$(date +'%Y-%m-%dT%H.%M.%S')" >> $GITHUB_ENV
-
       - name: Upload to Releases
         uses: softprops/action-gh-release@v1
         with:
