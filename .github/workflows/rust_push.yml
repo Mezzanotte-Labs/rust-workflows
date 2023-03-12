@@ -30,7 +30,7 @@ jobs:
             cross: false
             dependencies: |
               sudo apt-get update
-              sudo apt-get install -y pkg-config libssl-dev musl-tools build-essential autoconf automake gdb git libffi-dev zlib1g-dev libssl-dev libc-devtools
+              sudo apt-get install -y pkg-config libssl-dev musl-tools build-essential autoconf automake gdb git libffi-dev zlib1g-dev libssl-dev libc-devtools mingw-w64
 
     steps:
       - uses: actions/checkout@v2
