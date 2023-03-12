@@ -4,6 +4,7 @@ on:
   workflow_call:
 
 jobs:
+  # Compiling on Ubuntu
   compile-ubuntu:
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -70,6 +71,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  # Compiling on Windows
   compile-windows:
     runs-on: windows-latest
     continue-on-error: true
@@ -115,6 +117,8 @@ jobs:
         with:
           command: build
           args: --release --target=${{ matrix.target }}
+      - name: Debug
+        run: ls -R
       - name: Rename Binary
         if: success()
         run: mv target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }} target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}
@@ -127,6 +131,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  # Upload to GitHub Releases
   upload:
     needs: [compile-ubuntu, compile-windows]
     runs-on: ubuntu-latest
