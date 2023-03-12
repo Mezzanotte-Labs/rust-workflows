@@ -121,13 +121,13 @@ jobs:
         run: ls -R
       - name: Rename Binary
         if: success()
-        run: mv target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }} target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}
+        run: mv target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}.exe target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}.exe
       - name: Upload Binary
         uses: actions/upload-artifact@v3
         if: success()
         with:
-          name: ${{ steps.package_name.outputs.value }}-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}
+          name: ${{ steps.package_name.outputs.value }}-${{ matrix.target }}.exe
+          path: target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}.exe
           if-no-files-found: error
           retention-days: 7
 
