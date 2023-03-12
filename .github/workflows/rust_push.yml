@@ -100,6 +100,8 @@ jobs:
           echo 'incremental = false' >> Cargo.toml
           echo 'codegen-units = 1' >> Cargo.toml
           echo 'rpath = false' >> Cargo.toml
+      - name: Debug
+        run: cat Cargo.toml
       - name: Get Package Name
         uses: SebRollen/toml-action@v1.0.1
         id: package_name
