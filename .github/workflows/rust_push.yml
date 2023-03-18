@@ -1,16 +1,45 @@
 name: Rust Compile and Release
 
-
 on: 
   workflow_call:
 
 jobs:
-  compile:
+  # Compiling on Ubuntu
+  compile-ubuntu:
     runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        include:
+          - target: "x86_64-unknown-linux-gnu"
+            cross: false
+            extension: ""
+            dependencies: |
+              sudo apt-get update
+              sudo apt-get install -y pkg-config libssl-dev build-essential autoconf automake gdb git libffi-dev zlib1g-dev libssl-dev libc-devtools
+          - target: "aarch64-unknown-linux-gnu"
+            cross: true
+            extension: ""
+            dependencies: |
+              sudo apt-get update
+              sudo apt-get install -y pkg-config libssl-dev gcc-aarch64-linux-gnu build-essential autoconf automake gdb git libffi-dev zlib1g-dev libssl-dev libc-devtools
+          - target: "x86_64-unknown-linux-musl"
+            cross: false
+            extension: ""
+            dependencies: |
+              sudo apt-get update
+              sudo apt-get install -y pkg-config libssl-dev musl-tools build-essential autoconf automake gdb git libffi-dev zlib1g-dev libssl-dev libc-devtools
+          - target: "x86_64-pc-windows-gnu"
+            cross: false
+            extension: ".exe"
+            dependencies: |
+              sudo apt-get update
+              sudo apt-get install -y pkg-config libssl-dev build-essential autoconf automake gdb git libffi-dev zlib1g-dev libssl-dev libc-devtools mingw-w64
 
     steps:
       - uses: actions/checkout@v2
-
+      - name: Install Dependencies
+        run: ${{ matrix.dependencies }}
       - name: Edit Cargo.toml
         run: |
           sed -i 's/^openssl.*/openssl = {version = "0.10", features = ["vendored"]}/g' Cargo.toml
@@ -25,50 +54,173 @@ jobs:
           echo 'incremental = false' >> Cargo.toml
           echo 'codegen-units = 1' >> Cargo.toml
           echo 'rpath = false' >> Cargo.toml
-
-      - name: Install packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y musl-tools
-          sudo apt-get install -y pkg-config
-          sudo apt-get install -y libxss-dev
-          sudo apt-get install -y libssl-dev
-
-      - name: Setup openssl and pkg-config
-        run: |
-          echo "OPENSSL_DIR=/usr/lib/x86_64-linux-gnu" >> $GITHUB_ENV
-          echo "OPENSSL_INCLUDE_DIR=/usr/include/openssl" >> $GITHUB_ENV
-          echo "PKG_CONFIG_ALLOW_CROSS=1" >> $GITHUB_ENV
-
-      - name: Setup Toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          target: x86_64-unknown-linux-musl
-          override: true
-
-      - name: Compile Binary
-        uses: actions-rs/cargo@v1
-        env:
-          RUSTFLAGS: '-C target-feature=+crt-static -C link-self-contained=yes'
-        with:
-          command: build
-          args: --release --target x86_64-unknown-linux-musl
-
-      - name: Generate release tag
-        run: echo "DATE=$(date +'%Y-%m-%dT%H.%M.%S')" >> $GITHUB_ENV
-
       - name: Get Package Name
         uses: SebRollen/toml-action@v1.0.1
         id: package_name
         with:
           file: 'Cargo.toml'
           field: 'package.name'
+      - name: Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          target: ${{ matrix.target }}
+          override: true
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: ${{ matrix.cross }}
+          command: build
+          args: --release --target=${{ matrix.target }}
+      - name: Rename Binary
+        if: success()
+        run: mv target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}${{ matrix.extension }} target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}${{ matrix.extension }}
+      - name: Upload Binary
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: ${{ steps.package_name.outputs.value }}-${{ matrix.target }}${{ matrix.extension }}
+          path: target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}${{ matrix.extension }}
+          if-no-files-found: error
+          retention-days: 7
 
+  # Compiling on Windows
+  compile-windows:
+    runs-on: windows-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        include:
+          - target: "x86_64-pc-windows-msvc"
+            extension: ".exe"
+            dependencies:
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: ${{ matrix.dependencies }}
+      - name: Edit Cargo.toml
+        run: |
+          sed -i 's/^openssl.*/openssl = {version = \"0.10\", features = [\"vendored\"]}/g' Cargo.toml
+          echo '[profile.release]' >> Cargo.toml
+          echo 'opt-level = 3' >> Cargo.toml
+          echo 'debug = false' >> Cargo.toml
+          echo 'debug-assertions = false' >> Cargo.toml
+          echo 'overflow-checks = true' >> Cargo.toml
+          echo 'lto = "fat"' >> Cargo.toml
+          echo 'strip = true' >> Cargo.toml
+          echo 'panic = "abort"' >> Cargo.toml
+          echo 'incremental = false' >> Cargo.toml
+          echo 'codegen-units = 1' >> Cargo.toml
+          echo 'rpath = false' >> Cargo.toml
+      - name: Get Package Name
+        uses: SebRollen/toml-action@v1.0.1
+        id: package_name
+        with:
+          file: 'Cargo.toml'
+          field: 'package.name'
+      - name: Configure Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          target: ${{ matrix.target }}
+          override: true
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target=${{ matrix.target }}
+      - name: Rename Binary
+        if: success()
+        run: mv target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}${{ matrix.extension }} target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}${{ matrix.extension }}
+      - name: Upload Binary
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: ${{ steps.package_name.outputs.value }}-${{ matrix.target }}${{ matrix.extension }}
+          path: target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}${{ matrix.extension }}
+          if-no-files-found: error
+          retention-days: 7
+
+  # Compiling on macOS
+  compile-macos:
+    runs-on: macos-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        include:
+          - target: "aarch64-apple-darwin"
+            extension: ""
+            dependencies: |
+              brew install gnu-sed 
+          - target: "x86_64-apple-darwin"
+            extension: ""
+            dependencies: |
+              brew install gnu-sed
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: ${{ matrix.dependencies }}
+      - name: Edit Cargo.toml
+        run: |
+          gsed -i 's/^openssl.*/openssl = {version = "0.10", features = ["vendored"]}/g' Cargo.toml
+          echo '[profile.release]' >> Cargo.toml
+          echo 'opt-level = 3' >> Cargo.toml
+          echo 'debug = false' >> Cargo.toml
+          echo 'debug-assertions = false' >> Cargo.toml
+          echo 'overflow-checks = true' >> Cargo.toml
+          echo 'lto = "fat"' >> Cargo.toml
+          echo 'strip = true' >> Cargo.toml
+          echo 'panic = "abort"' >> Cargo.toml
+          echo 'incremental = false' >> Cargo.toml
+          echo 'codegen-units = 1' >> Cargo.toml
+          echo 'rpath = false' >> Cargo.toml
+      - name: Get Package Name
+        uses: SebRollen/toml-action@v1.0.1
+        id: package_name
+        with:
+          file: 'Cargo.toml'
+          field: 'package.name'
+      - name: Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          target: ${{ matrix.target }}
+          override: true
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target=${{ matrix.target }}
+      - name: Rename Binary
+        if: success()
+        run: mv target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}${{ matrix.extension }} target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}${{ matrix.extension }}
+      - name: Upload Binary
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: ${{ steps.package_name.outputs.value }}-${{ matrix.target }}${{ matrix.extension }}
+          path: target/${{ matrix.target }}/release/${{ steps.package_name.outputs.value }}-${{ matrix.target }}${{ matrix.extension }}
+          if-no-files-found: error
+          retention-days: 7
+
+  # Upload to GitHub Releases
+  upload:
+    needs: [compile-ubuntu, compile-windows, compile-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: bins/
+      - name: Generate release tag
+        run: echo "DATE=$(date +'%Y-%m-%dT%H.%M.%S')" >> $GITHUB_ENV
       - name: Upload to Releases
         uses: softprops/action-gh-release@v1
         with:
           tag_name: Main_Release_${{ env.DATE }}
-          files: target/x86_64-unknown-linux-musl/release/${{ steps.package_name.outputs.value }}
+          files: bins/**
           generate_release_notes: true
