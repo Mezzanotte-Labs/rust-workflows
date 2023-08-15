@@ -40,20 +40,6 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install Dependencies
         run: ${{ matrix.dependencies }}
-      - name: Edit Cargo.toml
-        run: |
-          sed -i 's/^openssl.*/openssl = {version = "0.10", features = ["vendored"]}/g' Cargo.toml
-          echo '[profile.release]' >> Cargo.toml
-          echo 'opt-level = 3' >> Cargo.toml
-          echo 'debug = false' >> Cargo.toml
-          echo 'debug-assertions = false' >> Cargo.toml
-          echo 'overflow-checks = true' >> Cargo.toml
-          echo 'lto = "fat"' >> Cargo.toml
-          echo 'strip = true' >> Cargo.toml
-          echo 'panic = "abort"' >> Cargo.toml
-          echo 'incremental = false' >> Cargo.toml
-          echo 'codegen-units = 1' >> Cargo.toml
-          echo 'rpath = false' >> Cargo.toml
       - name: Get Package Name
         uses: SebRollen/toml-action@v1.0.1
         id: package_name
