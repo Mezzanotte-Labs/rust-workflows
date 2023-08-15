@@ -3,6 +3,9 @@ name: Rust Compile and Release
 on: 
   workflow_call:
 
+permissions:
+  contents: read|write
+
 jobs:
   # Compiling on Ubuntu
   compile-ubuntu:
